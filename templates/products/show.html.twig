@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product View{% endblock %}
+
+{#-- Adds vertical spacing between Bootstrap cards #}
+{% set rowMarginBottom = 2 %}
+
+{# Limits product picture size in Bootstrap card #}
+{% set pictureHeight = '400px' %}
+{% set pictureWidth = '400px' %}
+{% set pictureObjectFit = 'scale-down' %}
+
+{% block body %}
+    {% if is_granted("ROLE_ADMIN") %}
+        <hr>
+            <a href="/product/list/admin">Go Back</a>
+        </hr>
+    {% else %}
+        <hr>
+            <a href="/">Go Back</a>
+        </hr>
+    {% endif %}
+    <h1>Product View</h1>
+    <div class="container">
+        <div class="row mb-{{ rowMarginBottom }}">
+            <div class='col'>
+                <div class="card h-100 border-dark">
+                    <div class="card-header">
+                        Product information
+                    </div>
+                    <div class="card-block">
+                        <div class="row">
+                            <div class="col">
+                                <img src="{{ product.imageURL }}" alt="No picture" style="display: block; margin-left: auto; margin-right: auto; height: {{ pictureHeight }}; width: {{ pictureWidth }}; object-fit: {{ pictureObjectFit }};">
+                            </div>
+                            <div class="col my-auto" style="overflow: auto;">
+                                <p>{{ product.name }}</p>
+                                <p><font color="DarkGrey">SKU: <font color="DimGrey">{{ product.sku }}</font></font></p>
+                                <!--
+                                    Displays product price in this order:
+                                    1. Individual discount price if it is set and price without individual discount (global discount doesn't affect this product's price)
+                                    2. Global discount price if it is set and price without global discount (individual discount is not set)
+                                    3. Price with tax (no discounts are set)
+                                -->
+                                {% if product.individualDiscountPercentage is not null and product.individualDiscountPercentage > 0 %}
+                                    {% if configuration.taxInclusionFlag %}
+                                        <p>{{ product.specialPrice|number_format(2, '.', '') }}€ (<strike>{{ product.taxPrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% else %}
+                                        <p>{{ product.noTaxSpecialPrice|number_format(2, '.', '') }}€ (<strike>{{ product.basePrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% endif %}
+                                {% elseif configuration.globalDiscountPercentage is not null and configuration.globalDiscountPercentage > 0 %}
+                                    {% if configuration.taxInclusionFlag %}
+                                        <p>{{ product.globalDiscountPrice|number_format(2, '.', '') }}€ (<strike>{{ product.taxPrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% else %}
+                                        <p>{{ product.noTaxGlobalDiscountPrice|number_format(2, '.', '') }}€ (<strike>{{ product.basePrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% endif %}
+                                {% else %}
+                                    {% if configuration.taxInclusionFlag %}
+                                        <p>{{ product.taxPrice|number_format(2, '.', '') }}€</p>
+                                    {% else %}
+                                        <p>{{ product.basePrice|number_format(2, '.', '') }}€</p>
+                                    {% endif %}
+                                {% endif %}
+                                <p>Rating: {{ product.reviewAverageScore|number_format(1, '.', '') }}/{{ 5|number_format(1, '.', '') }} ({{ product.reviewCount }})</p>
+                                <div class="btn-group-vertical">
+                                    <!-- Trigger the modal with a button -->
+                                    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submitReviewModal">Submit review</button>
+                                    <!-- Modal -->
+                                    <div id="submitReviewModal" class="modal fade" role="dialog">
+                                        <div class="modal-dialog modal-lg">
+                                            <!-- Modal content-->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" style="overflow:hidden; text-overflow: ellipsis; white-space: nowrap; word-wrap: break-word;">{{ product.name }}</h4>
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    {{ form_start(form) }}
+                                                    {{ form_widget(form) }}
+                                                    {{ form_end(form) }}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Trigger the modal with a button -->
+                                    <button type="button" class="btn btn-secondary btn-lg" data-toggle="modal" data-target="#allReviewsModal">See all reviews</button>
+                                    <!-- Modal -->
+                                    <div id="allReviewsModal" class="modal fade" role="dialog">
+                                        <div class="modal-dialog modal-lg">
+                                            <!-- Modal content-->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; word-wrap: break-word;">{{ product.name }}</h4>
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                </div>
+                                                <div class="modal-body">
+                                                {% if reviews %}
+                                                    {% for review in reviews %}
+                                                        <div class="card">
+                                                            <div class="card-header">
+                                                                {% if review.rating == 1 %}
+                                                                    <span>⭐</span>
+                                                                {% elseif review.rating == 2 %}
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                {% elseif review.rating == 3 %}
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                {% elseif review.rating == 4 %}
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                {% else %}
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                    <span>⭐</span>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="card-body" style="word-wrap: break-word;">
+                                                                {{ review.text|replace({"\n": "<br>"})|raw }}
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <p>No reviews to display</p>
+                                                {% endif %}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-{{ rowMarginBottom }}">
+            <div class='col'>
+                <div class="card h-100 border-dark">
+                    <div class="card-header">
+                        Product description
+                    </div>
+                    <div class="card-body" style="word-wrap: break-word;">
+                        {{ product.description | raw }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

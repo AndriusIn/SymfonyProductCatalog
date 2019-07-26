@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-3">
+<div class="container">
+    {% if is_granted("ROLE_ADMIN") %}
+        <a href="/product/list/admin" class="navbar-brand">Product Catalog</a>
+    {% else %}
+        <a href="/" class="navbar-brand">Product Catalog</a>
+    {% endif %}
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mobile-nav">
+        <span class="navbar-toggle-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mobile-nav">
+        <ul class="navbar-nav ml-auto">
+            {% if is_granted("ROLE_ADMIN") %}
+                <li class="nav-item">
+                    <a href="/product/list/admin" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/product/new" class="nav-link">New Product</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/configuration" class="nav-link">Basic Configuration</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a href="/" class="nav-link">Home</a>
+                </li>
+            {% endif %}
+            {% if not app.user %}
+                <li class="nav-item">
+                    <a href="/login" class="nav-link">Sign in</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a href="/logout" class="nav-link">Sign out ({{ app.user.username }})</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+</nav>

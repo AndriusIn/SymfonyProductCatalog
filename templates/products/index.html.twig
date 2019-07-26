@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product Catalog{% endblock %}
+
+{#-- Adds vertical spacing between Bootstrap cards #}
+{% set rowMarginBottom = 2 %}
+
+{# Makes all images have the same size in Bootstrap cards #}
+{% set cardImageHeight = '30vh' %}
+{% set cardImageObjectFit = 'scale-down' %}
+
+{# Given column count to Bootstrap grid #}
+{% set columnCount = 4 %}
+
+{# Finds optimal Bootstrap column class according to given column count (product count >= given column count) #}
+{# Changes given column count if it's too high and finds optimal Bootstrap column class (product count < given column count) #}
+{% if products %}
+    {% if 12 % columnCount == 0 and products|length >= columnCount %}
+        {% set column = "<div class='col-sm-#{ 12 / columnCount }'>" %}
+    {% elseif 12 % columnCount != 0 and products|length >= columnCount %}
+        {% set column = "<div class='col-sm-#{ 12 // columnCount }'>" %}
+    {% else %}
+        {% set columnCount = products|length %}
+        {% if 12 % columnCount == 0 %}
+            {% set column = "<div class='col-sm-#{ 12 / columnCount }'>" %}
+        {% else %}
+            {% set column = "<div class='col-sm-#{ 12 // columnCount }'>" %}
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+{% block body %}
+    <h1>Products</h1>
+    {% if products %}
+        <div class="container">
+            <div class="row mb-{{ rowMarginBottom }}">
+                {% for product in products %}
+                    {{ column | raw }}
+                        <div class="card border-dark">
+                            <img 
+                                class="card-img-top" 
+                                src="{{ product.imageURL }}" 
+                                alt="No picture" 
+                                style="width: 100%; height: {{ cardImageHeight }}; object-fit: {{ cardImageObjectFit }};"
+                            >
+                            <div class="card-body">
+                                <p style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; word-wrap: break-word;">{{ product.name }}</p>
+                                <p><font color="DarkGrey">SKU: <font color="DimGrey">{{ product.sku }}</font></font></p>
+                                <!--
+                                    Displays product price in this order:
+                                    1. Individual discount price if it is set and price without individual discount (global discount doesn't affect this product's price)
+                                    2. Global discount price if it is set and price without global discount (individual discount is not set)
+                                    3. Price with tax (no discounts are set)
+                                -->
+                                {% if product.individualDiscountPercentage is not null and product.individualDiscountPercentage > 0 %}
+                                    {% if configuration.taxInclusionFlag %}
+                                        <p style="overflow: hidden; text-overflow: ellipsis;">{{ product.specialPrice|number_format(2, '.', '') }}€ (<strike>{{ product.taxPrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% else %}
+                                        <p style="overflow: hidden; text-overflow: ellipsis;">{{ product.noTaxSpecialPrice|number_format(2, '.', '') }}€ (<strike>{{ product.basePrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% endif %}
+                                {% elseif configuration.globalDiscountPercentage is not null and configuration.globalDiscountPercentage > 0 %}
+                                    {% if configuration.taxInclusionFlag %}
+                                        <p style="overflow: hidden; text-overflow: ellipsis;">{{ product.globalDiscountPrice|number_format(2, '.', '') }}€ (<strike>{{ product.taxPrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% else %}
+                                        <p style="overflow: hidden; text-overflow: ellipsis;">{{ product.noTaxGlobalDiscountPrice|number_format(2, '.', '') }}€ (<strike>{{ product.basePrice|number_format(2, '.', '') }}€</strike>)</p>
+                                    {% endif %}
+                                {% else %}
+                                    {% if configuration.taxInclusionFlag %}
+                                        <p style="overflow: hidden; text-overflow: ellipsis;">{{ product.taxPrice|number_format(2, '.', '') }}€</p>
+                                    {% else %}
+                                        <p style="overflow: hidden; text-overflow: ellipsis;">{{ product.basePrice|number_format(2, '.', '') }}€</p>
+                                    {% endif %}
+                                {% endif %}
+                                <p>Rating: {{ product.reviewAverageScore|number_format(1, '.', '') }}/{{ 5|number_format(1, '.', '') }} ({{ product.reviewCount }})</p>
+                                <a href="/product/{{ product.id }}" class="btn btn-primary btn-lg btn-block">Show</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Closes the current row and creates new grid row when the last column is reached -->
+                    {% if loop.index % columnCount == 0 and not loop.last %}
+                        </div>
+                        <div class="row mb-{{ rowMarginBottom }}">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <p>No products to display</p>
+    {% endif %}
+{% endblock %}

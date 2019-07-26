@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Product List{% endblock %}
+
+{# Limits product picture size in a table #}
+{% set pictureHeight = '100px' %}
+{% set pictureWidth = '100px' %}
+{% set pictureObjectFit = 'scale-down' %}
+
+{% block body %}
+    <h1>Products</h1>
+    {% if products %}
+        <table id="products" class="table table-striped" style="table-layout:fixed;">
+            <thead>
+                <tr>
+                    <th style="vertical-align: middle;">Picture</th>
+                    <th style="vertical-align: middle;">Name</th>
+                    <th style="vertical-align: middle;">SKU</th>
+                    <th style="vertical-align: middle;">Status</th>
+                    <th style="vertical-align: middle;">Individual Discount (%)</th>
+                    <th style="vertical-align: middle;">Base Price</th>
+                    <th style="vertical-align: middle;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <img src="{{ product.imageURL }}" alt="No picture" style="height: {{ pictureHeight }}; width: {{ pictureWidth }}; object-fit: {{ pictureObjectFit }};">
+                        </td>
+                        <td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; word-wrap: break-word; vertical-align: middle;">
+                            {{ product.name }}
+                        </td>
+                        <td style="vertical-align: middle;">
+                            {{ product.sku }}
+                        </td>
+                        <td style="vertical-align: middle;">
+                            {{ product.status ? 'Enabled' : 'Disabled' }}
+                        </td>
+                        <td style="vertical-align: middle;">
+                            {{ product.individualDiscountPercentage }}
+                        </td>
+                        <td style="vertical-align: middle;">
+                            {{ product.basePrice|number_format(2, '.', '') }}
+                        </td>
+                        <td style="vertical-align: middle;">
+                            <a href="/product/{{ product.id }}" class="btn btn-dark btn-block">Show</a>
+                            <a href="/product/edit/{{ product.id }}" class="btn btn-light btn-block">Edit</a>
+                            <a href="#" class="btn btn-danger btn-block delete-product" data-id="{{ product.id }}">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No products to display</p>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script src="/js/jsmain.js"></script>
+{% endblock %}
