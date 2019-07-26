@@ -26,7 +26,7 @@ A simple product catalog Symfony application with basic management and price cal
 ## Database dump
 <details>
 <summary>Expand</summary>
-```sql
+```javascript
 -- phpMyAdmin SQL Dump
 -- version 4.9.0.1
 -- https://www.phpmyadmin.net/
